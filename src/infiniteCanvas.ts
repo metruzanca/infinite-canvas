@@ -1,3 +1,5 @@
+import { KEYS } from './constants';
+import { Cursor } from './cursor';
 import { Painter } from './painter';
 import { Shape } from './vite-env';
 
@@ -29,11 +31,11 @@ export class InfiniteCanvas {
     m2: false,
     x: 0,
     y: 0,
-    prev: { x: 0, y: 0 }
+    prev: { x: 0, y: 0 },
   }
 
-  private keys = {
-
+  private keys: Record<typeof KEYS[keyof typeof KEYS], boolean> = {
+    [KEYS.SPACE]: false,
   }
 
   private painter;
@@ -59,7 +61,7 @@ export class InfiniteCanvas {
     return (x + this.offsetX) * this.scale;
   }
   screenY(y: number) {
-    return (y + this.offsetX) * this.scale;
+    return (y + this.offsetY) * this.scale;
   }
 
   /* Ensure the canvas size = body size */
@@ -136,7 +138,7 @@ export class InfiniteCanvas {
           this.screenX(x1),
           this.screenY(y1),
           this.screenX(x2),
-          this.screenY(y2)
+          this.screenY(y2),
         );
       }
     }
@@ -186,27 +188,45 @@ export class InfiniteCanvas {
 
     this.mouse.x = this.mouse.prev.x = event.pageX
     this.mouse.y = this.mouse.prev.y = event.pageY
-    console.log(this.mouse);
-
-    this.canvas.style.cursor = 'grabbing'
   }
 
   handleMouseUp = () => {
     this.mouse.m1 = false
     this.mouse.m2 = false
-    this.canvas.style.cursor = 'initial'
   }
 
   handleMouseMove = (event: MouseEvent) => {
+    this.mouse.x = event.x
+    this.mouse.y = event.y
+
+    let deltaX = this.mouse.x - this.mouse.prev.x
+    let deltaY = this.mouse.y - this.mouse.prev.y
+
+    if (this.mouse.m1) {
+      this.offsetX += deltaX / this.scale
+      this.offsetY += deltaY / this.scale
+      this.render()
+    }
+
+    this.mouse.prev.x = event.x
+    this.mouse.prev.y = event.y
   }
 
 
   // Keyboard events
   handleKeyDown = (event: KeyboardEvent) => {
-    console.log(event.key);
-
+    if (event.repeat) return;
+    switch (event.key) {
+      case KEYS.SPACE:
+        this.keys[KEYS.SPACE] = true
+    }    
   }
   handleKeyUp = (event: KeyboardEvent) => {
-
+    if (event.repeat) return;
+    // this.keys[event.key] = false
+    switch (event.key) {
+      case KEYS.SPACE:
+        this.keys[KEYS.SPACE] = false
+    }
   }
 }
