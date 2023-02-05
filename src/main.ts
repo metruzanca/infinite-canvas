@@ -94,8 +94,8 @@ class InfiniteCanvas {
   private painter;
 
   // Given x||y from the canvas's coords, return the underlying coordinate
-  rawX = (x: number) => (x + this.offsetX) * this.scale;
-  rawY = (y: number) => (y + this.offsetY) * this.scale;
+  rawX = (x: number) => (x / this.scale) - this.offsetX;
+  rawY = (y: number) => (y / this.scale) - this.offsetY;
 
   // Same as above. These are useful if you want "absolute" x||y
   get x() { return this.rawX(this._x) }
@@ -109,7 +109,7 @@ class InfiniteCanvas {
     return this.canvas.clientHeight / this.scale;
   }
 
-  
+
   screenX(x: number) {
     return (x + this.offsetX) * this.scale;
   }
@@ -148,7 +148,7 @@ class InfiniteCanvas {
   }
 
   debug() {
-    console.log(this.meta);
+    console.log(JSON.stringify(this.meta, null, 2));
   }
 
   render() {
@@ -202,8 +202,7 @@ class InfiniteCanvas {
   // Use an arrow function as event listener to avoid rebinding `this`
   handleScroll = (event: WheelEvent) => {
     const scaleAmount = -event.deltaY / 500; // Usually 0.2
-    // this.scale = this.scale * (1 + scaleAmount);
-    this.scale = subtractFloat(this.scale, scaleAmount)
+    this.scale = this.scale * (1 + scaleAmount);
 
     // zoom the page based on where the cursor is
     const distX = event.pageX / this.canvas.clientWidth;
@@ -216,8 +215,8 @@ class InfiniteCanvas {
     const unitsAddLeft = unitsZoomedX * distX;
     const unitsAddTop = unitsZoomedY * distY;
 
-    this.offsetX = subtractFloat(this.offsetX, unitsAddLeft) || 0;
-    this.offsetY = subtractFloat(this.offsetY, unitsAddTop) || 0;
+    this.offsetX = subtractFloat(this.offsetX, unitsAddLeft);
+    this.offsetY = subtractFloat(this.offsetY, unitsAddTop);
 
     this.render();
   };
