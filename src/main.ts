@@ -46,7 +46,11 @@ class Painter {
     return this;
   }
 
-  drawRect(x0, y0, width, height, { fillStyle = DEFAULT_STOKE_COLOR } = {}) {
+  drawRect(
+    x0: number, y0: number,
+    width: number, height: number,
+    { fillStyle = DEFAULT_STOKE_COLOR } = {}
+  ) {
     this.context.fillStyle = fillStyle;
     this.context.fillRect(x0, y0, width, height);
 
@@ -79,19 +83,38 @@ class InfiniteCanvas {
   private scale = 1;
   private shapes: Shape[] = [];
 
+  private mouse = {
+    m1: false,
+    m2: false,
+    x: 0,
+    y: 0,
+    prev: { x: 0, y: 0 }
+  }
+
   private painter;
 
-  get x() {
-    return (this._x + this.offsetX) * this.scale;
-  }
-  get y() {
-    return (this._y + this.offsetX) * this.scale;
-  }
+  // Given x||y from the canvas's coords, return the underlying coordinate
+  rawX = (x: number) => (x + this.offsetX) * this.scale;
+  rawY = (y: number) => (y + this.offsetY) * this.scale;
+
+  // Same as above. These are useful if you want "absolute" x||y
+  get x() { return this.rawX(this._x) }
+  get y() { return this.rawY(this._y) }
+  
+  // These will instead give you the absolute canvas size with a given scaler
   get width() {
     return this.canvas.clientWidth / this.scale;
   }
   get height() {
     return this.canvas.clientHeight / this.scale;
+  }
+
+  
+  screenX(x: number) {
+    return (x + this.offsetX) * this.scale;
+  }
+  screenY(y: number) {
+    return (y + this.offsetX) * this.scale;
   }
 
   /* Ensure the canvas size = body size */
@@ -100,9 +123,9 @@ class InfiniteCanvas {
     this.canvas.width = document.body.clientWidth;
   }
 
-  constructor(canvas) {
+  constructor(canvas: HTMLCanvasElement) {
     this.canvas = canvas;
-    this.context = canvas.getContext("2d");
+    this.context = canvas.getContext("2d")!;
     // Instantiate extensions
     this.painter = new Painter(this.context);
     // Events
@@ -124,13 +147,6 @@ class InfiniteCanvas {
     };
   }
 
-  screenX(x) {
-    return (x + this.offsetX) * this.scale;
-  }
-  screenY(y) {
-    return (y + this.offsetX) * this.scale;
-  }
-
   debug() {
     console.log(this.meta);
   }
@@ -149,7 +165,7 @@ class InfiniteCanvas {
     return this;
   }
 
-  removeShape(index) {
+  removeShape(index: number) {
     this.shapes.splice(index, 1);
     return this;
   }
@@ -184,7 +200,7 @@ class InfiniteCanvas {
   }
 
   // Use an arrow function as event listener to avoid rebinding `this`
-  handleScroll = event => {
+  handleScroll = (event: WheelEvent) => {
     const scaleAmount = -event.deltaY / 500; // Usually 0.2
     // this.scale = this.scale * (1 + scaleAmount);
     this.scale = subtractFloat(this.scale, scaleAmount)
@@ -206,12 +222,32 @@ class InfiniteCanvas {
     this.render();
   };
 
+  handleMouseDown = (event: MouseEvent) => {
+    if (event.button === 0) {
+      this.mouse.m1 = true
+      this.mouse.m2 = false
+    }
+    if (event.button === 2) {
+      this.mouse.m1 = false
+      this.mouse.m2 = true
+    }
+
+  }
+
+  handleMouseUp = (event: MouseEvent) => {
+    this.mouse.m1 = false
+    this.mouse.m2 = false
+  }
+
+  handleMouseMove = (event: MouseEvent) => {
+
+  }
 }
 
 // ----- Main -----
 
-const canvas = document.getElementById("canvas");
-const instance = new InfiniteCanvas(document.getElementById("canvas"));
+const canvas = document.getElementById("canvas") as HTMLCanvasElement;
+const instance = new InfiniteCanvas(canvas);
 
 const drawCross = () => {
   instance
