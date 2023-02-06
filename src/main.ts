@@ -26,19 +26,28 @@ const drawCross = () => {
     })
     .addShape({
       type: 'text',
-      origin: [instance.width / 2, instance.height / 2 - 10],
+      origin: [instance.width / 12, instance.height / 2 - 100],
+      text: 'Figma-like Infinite Canvas.\nBuild with VanillaJS & ❤️',
+      options: {
+        ...DEFAULT_FONT_OPTIONS,
+        fontSize: 50,
+      },
+    })
+    .addShape({
+      type: 'text',
+      origin: [instance.width / 12, instance.height / 2 - 10],
       text: 'Press and hold space to drag the canvas',
       options: DEFAULT_FONT_OPTIONS,
     })
     .addShape({
       type: 'text',
-      origin: [instance.width / 2, instance.height / 2 + 40],
+      origin: [instance.width / 12, instance.height / 2 + 40],
       text: 'Scroll to zoom in / out',
       options: DEFAULT_FONT_OPTIONS,
     })
     .addShape({
       type: 'text',
-      origin: [instance.width / 2, instance.height / 2 + 90],
+      origin: [instance.width / 12, instance.height / 2 + 90],
       text: 'Press the R key to reset',
       options: DEFAULT_FONT_OPTIONS,
     })
