@@ -1,4 +1,4 @@
-import { BACKGROUND, DEFAULT_STOKE_COLOR } from "./constants";
+import { BACKGROUND, DEFAULT_FONT_OPTIONS, DEFAULT_STOKE_COLOR } from "./constants";
 
 /*
  * Utility class for drawing to the canvas.
@@ -26,6 +26,12 @@ export class Painter {
     this.context.fillRect(x0, y0, width, height);
 
     return this;
+  }
+
+  writeText(x: number, y: number, text: string, options = DEFAULT_FONT_OPTIONS) {
+    this.context.font = `${options.fontSize}px ${options.fontFamily || ''}`
+    this.context.fillStyle = options.color;
+    this.context.fillText(text, x, y);
   }
 
   clear(fillStyle = BACKGROUND) {

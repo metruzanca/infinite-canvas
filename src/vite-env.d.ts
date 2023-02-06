@@ -19,4 +19,18 @@ export type Rect = {
   height: number
 }
 
-export type Shape = Dot | Line | Rect
+// A failed attempt to get the 
+export type FontOptions = {
+  color: string
+  fontFamily: string
+  fontSize: number
+}
+
+export type Text = {
+  type: 'text'
+  origin: Point
+  text: string
+  options: FontOptions
+}
+
+export type Shape = Dot | Line | Rect | Text

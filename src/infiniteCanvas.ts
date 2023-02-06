@@ -2,11 +2,6 @@ import { KEYS } from './constants';
 import { Painter } from './painter';
 import { Shape } from './vite-env';
 
-/* JS doesn't like subtracting decimals correctly */
-function subtractFloat(f1: number, f2: number, decimals = 1) {
-  return Math.round((f1 - f2) * 10 ** decimals) / 10 ** decimals
-}
-
 /* Handles drawing the canvas and abstracts the coordinate system */
 export class InfiniteCanvas {
   private canvas;
@@ -125,14 +120,25 @@ export class InfiniteCanvas {
 
   private draw() {
     for (let shape of this.shapes) {
-      if (shape.type === 'line') {
-        const { coords: [[x1, y1], [x2, y2]] } = shape
-        this.painter.drawLine(
-          this.screenX(x1),
-          this.screenY(y1),
-          this.screenX(x2),
-          this.screenY(y2),
-        );
+      switch (shape.type) {
+        case 'line': {
+          const { coords: [[x1, y1], [x2, y2]] } = shape
+          this.painter.drawLine(
+            this.screenX(x1),
+            this.screenY(y1),
+            this.screenX(x2),
+            this.screenY(y2),
+          );
+          break;
+        }
+        case 'text': {
+          const { origin: [x, y], text, options } = shape
+          this.painter.writeText(this.screenX(x), this.screenY(y), text, {
+            ...options,
+            fontSize: (options.fontSize * this.coords.scale),
+          })
+          break
+        }
       }
     }
   }
@@ -163,8 +169,8 @@ export class InfiniteCanvas {
     const unitsAddLeft = unitsZoomedX * distX;
     const unitsAddTop = unitsZoomedY * distY;
 
-    this.coords.offset.x = subtractFloat(this.coords.offset.x, unitsAddLeft);
-    this.coords.offset.y = subtractFloat(this.coords.offset.y, unitsAddTop);
+    this.coords.offset.x = this.coords.offset.x - unitsAddLeft
+    this.coords.offset.y = this.coords.offset.y - unitsAddTop
 
     this.render();
   };
