@@ -17,6 +17,9 @@ It seemed like a trend to make an app with an infinite canvas, so I wanted to tr
 
 > That being said, I did use typescript and vite just to make my development experience better, but neither are necessary. Stripping them out would be trivial.
 
+Important TODO
+- [ ] Touch controls (pinch for zoom out etc)
+
 <details>
 <summary>TODO, maybe</summary>
 
