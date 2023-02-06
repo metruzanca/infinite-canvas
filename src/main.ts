@@ -1,4 +1,4 @@
-import { DEFAULT_FONT_OPTIONS, DEFAULT_STOKE_COLOR } from './constants';
+import { DEFAULT_FONT_OPTIONS } from './constants';
 import { InfiniteCanvas } from './infiniteCanvas';
 import './style.css'
 
