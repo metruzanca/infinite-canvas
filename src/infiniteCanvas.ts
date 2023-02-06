@@ -12,17 +12,12 @@ export class InfiniteCanvas {
   private canvas;
   public context;
   // TODO move everything to this. Why? this is easier to pass around without constantly creating objects.
-  // private coords = {
-  //   x: 0,
-  //   y: 0,
-  //   offset: { x: 0, y: 0 },
-  //   scale: 1
-  // };
-  private _x = 0;
-  private _y = 0;
-  private offsetX = 0;
-  private offsetY = 0;
-  private scale = 1;
+  private coords = {
+    x: 0,
+    y: 0,
+    offset: { x: 0, y: 0 },
+    scale: 1
+  }
   private shapes: Shape[] = [];
 
   mouse = {
@@ -33,36 +28,34 @@ export class InfiniteCanvas {
     prev: { x: 0, y: 0 },
   }
 
-
-  
-  keys: Record<typeof KEYS[keyof typeof KEYS], boolean> = {
+  keys = {
     [KEYS.SPACE]: false,
   }
 
   private painter;
 
   // Given x||y from the canvas's coords, return the underlying coordinate
-  rawX = (x: number) => (x / this.scale) - this.offsetX;
-  rawY = (y: number) => (y / this.scale) - this.offsetY;
+  rawX = (x: number) => (x / this.coords.scale) - this.coords.offset.x;
+  rawY = (y: number) => (y / this.coords.scale) - this.coords.offset.y;
 
   // Same as above. These are useful if you want "absolute" x||y
-  get x() { return this.rawX(this._x) }
-  get y() { return this.rawY(this._y) }
+  get x() { return this.rawX(this.coords.x) }
+  get y() { return this.rawY(this.coords.y) }
 
   // These will instead give you the absolute canvas size with a given scaler
   get width() {
-    return this.canvas.clientWidth / this.scale;
+    return this.canvas.clientWidth / this.coords.scale;
   }
   get height() {
-    return this.canvas.clientHeight / this.scale;
+    return this.canvas.clientHeight / this.coords.scale;
   }
 
 
   screenX(x: number) {
-    return (x + this.offsetX) * this.scale;
+    return (x + this.coords.offset.x) * this.coords.scale;
   }
   screenY(y: number) {
-    return (y + this.offsetY) * this.scale;
+    return (y + this.coords.offset.y) * this.coords.scale;
   }
 
   /* Ensure the canvas size = body size */
@@ -96,10 +89,10 @@ export class InfiniteCanvas {
 
   get meta() {
     return {
-      x: this._x,
-      y: this._y,
-      offset: { x: this.offsetX, y: this.offsetY },
-      scale: this.scale,
+      x: this.coords.x,
+      y: this.coords.y,
+      offset: { x: this.coords.offset.x, y: this.coords.offset.y },
+      scale: this.coords.scale,
     };
   }
 
@@ -146,18 +139,18 @@ export class InfiniteCanvas {
 
   /* Resets the coordinate system, placing the center in the top-left */
   reset() {
-    this._x = 0;
-    this._y = 0;
-    this.offsetX = 0;
-    this.offsetY = 0;
-    this.scale = 1;
+    this.coords.x = 0;
+    this.coords.y = 0;
+    this.coords.offset.x = 0;
+    this.coords.offset.y = 0;
+    this.coords.scale = 1;
     this.render();
   }
 
   // Use an arrow function as event listener to avoid rebinding `this`
   handleScroll = (event: WheelEvent) => {
     const scaleAmount = -event.deltaY / 500; // Usually 0.2
-    this.scale = this.scale * (1 + scaleAmount);
+    this.coords.scale = this.coords.scale * (1 + scaleAmount);
 
     // zoom the page based on where the cursor is
     const distX = event.pageX / this.canvas.clientWidth;
@@ -170,8 +163,8 @@ export class InfiniteCanvas {
     const unitsAddLeft = unitsZoomedX * distX;
     const unitsAddTop = unitsZoomedY * distY;
 
-    this.offsetX = subtractFloat(this.offsetX, unitsAddLeft);
-    this.offsetY = subtractFloat(this.offsetY, unitsAddTop);
+    this.coords.offset.x = subtractFloat(this.coords.offset.x, unitsAddLeft);
+    this.coords.offset.y = subtractFloat(this.coords.offset.y, unitsAddTop);
 
     this.render();
   };
@@ -199,8 +192,8 @@ export class InfiniteCanvas {
     let deltaY = this.mouse.y - this.mouse.prev.y
 
     if (this.keys[KEYS.SPACE] && this.mouse.m1) {
-      this.offsetX += deltaX / this.scale
-      this.offsetY += deltaY / this.scale
+      this.coords.offset.x += deltaX / this.coords.scale
+      this.coords.offset.y += deltaY / this.coords.scale
       this.render()
     }
     
