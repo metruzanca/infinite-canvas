@@ -1,6 +1,6 @@
-import { KEYS } from './constants';
+import { KEYS, LINK } from './constants';
 import { Painter } from './painter';
-import { Shape } from './vite-env';
+import { Entities, Shape } from './vite-env';
 
 /* Handles drawing the canvas and abstracts the coordinate system */
 export class InfiniteCanvas {
@@ -13,7 +13,9 @@ export class InfiniteCanvas {
     offset: { x: 0, y: 0 },
     scale: 1
   }
-  private shapes: Shape[] = [];
+  public shapes: Shape[] = [];
+  /** A sub array of shapes for faster checks */
+  private entityShapes: Entities[] = []
 
   mouse = {
     m1: false,
@@ -114,6 +116,9 @@ export class InfiniteCanvas {
   }
 
   addShape(shape: Shape) {
+    if (shape.type === 'entity') {
+      this.entityShapes.push(shape)
+    }
     this.shapes.push(shape);
     return this;
   }
@@ -121,6 +126,15 @@ export class InfiniteCanvas {
   private draw() {
     for (let shape of this.shapes) {
       switch (shape.type) {
+        case 'dot': {
+          const { origin: [x, y] } = shape
+          this.painter.drawArc(
+            this.screenX(x),
+            this.screenY(y),
+            10 * this.coords.scale,
+          )
+          break
+        }
         case 'line': {
           const { coords: [[x1, y1], [x2, y2]] } = shape
           this.painter.drawLine(
@@ -139,6 +153,38 @@ export class InfiniteCanvas {
           })
           break
         }
+        case 'entity': {
+          this.drawEntity(shape)
+          break
+        }
+      }
+    }
+  }
+ 
+  // Moved here because I might add more types of entities
+  // REFACTOR
+  private drawEntity(shape: Entities) {    
+    switch(shape.entity) {
+      case 'link': {
+        const { origin: [x, y], text, options, url } = shape
+        this.painter.writeText(this.screenX(x), this.screenY(y), text, {
+          ...options,
+          color: LINK.TEXT, 
+          fontSize: (options.fontSize * this.coords.scale),
+        })
+        // REFACTOR
+        if (!shape.size) shape.size = {
+          width: this.context.measureText(shape.text).width,
+          height: shape.options.fontSize,
+        }
+        const width = this.painter.measureText(text)
+        const lx = this.screenX(x);
+        const ly = this.screenY(y);
+        const lineMargin = 3;
+        this.painter.drawLine(lx, ly + lineMargin, lx + width, ly + lineMargin, {
+          strokeStyle: LINK.TEXT
+        })
+        break;
       }
     }
   }
@@ -179,6 +225,11 @@ export class InfiniteCanvas {
     if (event.button === 0) {
       this.mouse.m1 = true
       this.mouse.m2 = false
+
+      let collidedShape = this.entityShapes[this.collidedEntity]
+      if (collidedShape && collidedShape.entity === 'link') {
+        window.location.href = collidedShape.url
+      }
     }
     if (event.button === 2) {
       this.mouse.m1 = false
@@ -189,6 +240,8 @@ export class InfiniteCanvas {
     this.mouse.y = this.mouse.prev.y = event.pageY
     this.updateCursor()
   }
+
+  collidedEntity = -1;
 
   handleMouseMove = (event: MouseEvent) => {
     this.mouse.x = event.x
@@ -201,7 +254,27 @@ export class InfiniteCanvas {
       this.coords.offset.x += deltaX / this.coords.scale
       this.coords.offset.y += deltaY / this.coords.scale
       this.render()
-    }
+    } 
+
+    this.entityShapes.forEach((shape, i) => {
+      const lx = this.screenX(shape.origin[0]); 
+      const ly = this.screenY(shape.origin[1]);
+      const { x, y } = this.mouse
+      const collision = (
+        x >= lx &&
+        x <= (lx + shape.size?.width!) &&
+        y <= ly &&
+        y >= (ly - shape.size?.height!)
+      )
+      shape.hovered = collision
+  
+      // FIXME with multiple entity, this wont work anymore
+      if (collision) { 
+        this.collidedEntity = i
+      } else {
+        this.collidedEntity = -1
+      }
+    })
     
     this.mouse.prev.x = event.x
     this.mouse.prev.y = event.y
@@ -232,7 +305,11 @@ export class InfiniteCanvas {
     }
   }
 
-  updateCursor() {    
+  updateCursor() {   
+    if (this.entityShapes[this.collidedEntity]) {
+      this.canvas.style.cursor = 'pointer'
+      return
+    }
     if (this.keys[KEYS.SPACE] && this.mouse.m1) {      
       this.canvas.style.cursor = 'grabbing'
       return
