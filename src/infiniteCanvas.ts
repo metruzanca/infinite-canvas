@@ -1,5 +1,4 @@
 import { KEYS } from './constants';
-import { Cursor } from './cursor';
 import { Painter } from './painter';
 import { Shape } from './vite-env';
 
@@ -11,7 +10,7 @@ function subtractFloat(f1: number, f2: number, decimals = 1) {
 /* Handles drawing the canvas and abstracts the coordinate system */
 export class InfiniteCanvas {
   private canvas;
-  private context;
+  public context;
   // TODO move everything to this. Why? this is easier to pass around without constantly creating objects.
   // private coords = {
   //   x: 0,
@@ -26,7 +25,7 @@ export class InfiniteCanvas {
   private scale = 1;
   private shapes: Shape[] = [];
 
-  private mouse = {
+  mouse = {
     m1: false,
     m2: false,
     x: 0,
@@ -34,7 +33,7 @@ export class InfiniteCanvas {
     prev: { x: 0, y: 0 },
   }
 
-  private keys: Record<typeof KEYS[keyof typeof KEYS], boolean> = {
+  keys: Record<typeof KEYS[keyof typeof KEYS], boolean> = {
     [KEYS.SPACE]: false,
   }
 
@@ -111,11 +110,11 @@ export class InfiniteCanvas {
     this.painter.clear();
 
     this.draw();
+    this.updateCursor()
     this.debug();
   }
 
   removeAllShapes() {
-    // TODO this mutation might be problematic
     this.shapes = []
     return this;
   }
@@ -188,11 +187,7 @@ export class InfiniteCanvas {
 
     this.mouse.x = this.mouse.prev.x = event.pageX
     this.mouse.y = this.mouse.prev.y = event.pageY
-  }
-
-  handleMouseUp = () => {
-    this.mouse.m1 = false
-    this.mouse.m2 = false
+    this.updateCursor()
   }
 
   handleMouseMove = (event: MouseEvent) => {
@@ -202,7 +197,7 @@ export class InfiniteCanvas {
     let deltaX = this.mouse.x - this.mouse.prev.x
     let deltaY = this.mouse.y - this.mouse.prev.y
 
-    if (this.mouse.m1) {
+    if (this.keys[KEYS.SPACE] && this.mouse.m1) {
       this.offsetX += deltaX / this.scale
       this.offsetY += deltaY / this.scale
       this.render()
@@ -212,6 +207,11 @@ export class InfiniteCanvas {
     this.mouse.prev.y = event.y
   }
 
+  handleMouseUp = () => {
+    this.mouse.m1 = false
+    this.mouse.m2 = false
+    this.updateCursor()
+  }
 
   // Keyboard events
   handleKeyDown = (event: KeyboardEvent) => {
@@ -219,14 +219,25 @@ export class InfiniteCanvas {
     switch (event.key) {
       case KEYS.SPACE:
         this.keys[KEYS.SPACE] = true
+        this.updateCursor()
     }    
   }
   handleKeyUp = (event: KeyboardEvent) => {
     if (event.repeat) return;
-    // this.keys[event.key] = false
     switch (event.key) {
       case KEYS.SPACE:
         this.keys[KEYS.SPACE] = false
+        this.updateCursor()
+    }
+  }
+
+  updateCursor() {    
+    if (this.keys[KEYS.SPACE] && this.mouse.m1) {
+      this.canvas.style.cursor = 'grabbing'
+    } else if (this.keys[KEYS.SPACE]) {
+      this.canvas.style.cursor = 'grab'
+    } else {
+      this.canvas.style.cursor = 'initial'
     }
   }
 }
