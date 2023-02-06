@@ -33,6 +33,8 @@ export class InfiniteCanvas {
     prev: { x: 0, y: 0 },
   }
 
+
+  
   keys: Record<typeof KEYS[keyof typeof KEYS], boolean> = {
     [KEYS.SPACE]: false,
   }
@@ -110,7 +112,6 @@ export class InfiniteCanvas {
     this.painter.clear();
 
     this.draw();
-    this.updateCursor()
     this.debug();
   }
 
@@ -202,9 +203,10 @@ export class InfiniteCanvas {
       this.offsetY += deltaY / this.scale
       this.render()
     }
-
+    
     this.mouse.prev.x = event.x
     this.mouse.prev.y = event.y
+    this.updateCursor()
   }
 
   handleMouseUp = () => {
@@ -232,12 +234,14 @@ export class InfiniteCanvas {
   }
 
   updateCursor() {    
-    if (this.keys[KEYS.SPACE] && this.mouse.m1) {
+    if (this.keys[KEYS.SPACE] && this.mouse.m1) {      
       this.canvas.style.cursor = 'grabbing'
-    } else if (this.keys[KEYS.SPACE]) {
-      this.canvas.style.cursor = 'grab'
-    } else {
-      this.canvas.style.cursor = 'initial'
+      return
     }
+    if (this.keys[KEYS.SPACE]) {
+      this.canvas.style.cursor = 'grab'
+      return
+    } 
+    this.canvas.style.cursor = 'initial'
   }
 }
