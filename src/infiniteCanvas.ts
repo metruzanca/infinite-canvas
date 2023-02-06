@@ -166,7 +166,7 @@ export class InfiniteCanvas {
   private drawEntity(shape: Entities) {    
     switch(shape.entity) {
       case 'link': {
-        const { origin: [x, y], text, options, url } = shape
+        const { origin: [x, y], text, options } = shape
         this.painter.writeText(this.screenX(x), this.screenY(y), text, {
           ...options,
           color: LINK.TEXT, 
